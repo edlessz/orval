@@ -122,6 +122,34 @@ export const vueUnRefParams = (props: GetterProps): string => {
     .join('\n');
 };
 
+export function angularWrapTypeWithSignal(props: GetterProps): GetterProps {
+  return props.map((prop) => {
+    const [paramName, paramType] = prop.implementation.split(':');
+    if (!paramType) return prop;
+    const name =
+      prop.type === GetterPropType.NAMED_PATH_PARAMS ? prop.name : paramName;
+
+    const [type, defaultValue] = paramType.split('=');
+    return {
+      ...prop,
+      implementation: `${name}: Signal<${type.trim()}>${
+        defaultValue ? ` = signal(${defaultValue})` : ''
+      }`,
+    };
+  });
+}
+
+export const angularUnwrapSignals = (props: GetterProps): string => {
+  return props
+    .map((prop) => {
+      if (prop.type === GetterPropType.NAMED_PATH_PARAMS) {
+        return `const ${prop.destructured} = ${prop.name}();`;
+      }
+      return `${prop.name} = ${prop.name}();`;
+    })
+    .join('\n');
+};
+
 export const wrapRouteParameters = (
   route: string,
   prepend: string,
@@ -133,6 +161,9 @@ export const makeRouteSafe = (route: string): string =>
 
 export const isVue = (client: OutputClient | OutputClientFunc) =>
   OutputClient.VUE_QUERY === client;
+
+export const isAngular = (client: OutputClient | OutputClientFunc) =>
+  OutputClient.ANGULAR_QUERY === client;
 
 export const getHasSignal = ({
   overrideQuerySignal = false,

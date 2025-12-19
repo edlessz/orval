@@ -6543,6 +6543,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/angular-query-experimental@npm:^5.63.3":
+  version: 5.90.16
+  resolution: "@tanstack/angular-query-experimental@npm:5.90.16"
+  dependencies:
+    "@tanstack/query-core": "npm:5.90.12"
+    "@tanstack/query-devtools": "npm:5.91.1"
+  peerDependencies:
+    "@angular/common": ">=16.0.0"
+    "@angular/core": ">=16.0.0"
+  dependenciesMeta:
+    "@tanstack/query-devtools":
+      optional: true
+  checksum: 10c0/0806c4b9b4bc1643c5189782e8e0ae203e986534a78dffa5a3eb3597f589960c70ca8a967ec97b975852848b5aafb2e7cabc059294a1473e068a5f444b79b4da
+  languageName: node
+  linkType: hard
+
 "@tanstack/match-sorter-utils@npm:^8.19.4":
   version: 8.19.4
   resolution: "@tanstack/match-sorter-utils@npm:8.19.4"
@@ -6566,10 +6582,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/query-core@npm:5.90.12":
+  version: 5.90.12
+  resolution: "@tanstack/query-core@npm:5.90.12"
+  checksum: 10c0/60d5dd23d7801118d6ef84a3d76e798aaf6eb851ee5227629a1dc798fa01ac9560580553413208fcc8a003fb12a89e83d6dd1f38ebc3bd9b6e8838cfaaa45fef
+  languageName: node
+  linkType: hard
+
 "@tanstack/query-core@npm:5.90.6":
   version: 5.90.6
   resolution: "@tanstack/query-core@npm:5.90.6"
   checksum: 10c0/2523cd4d9bc4d9fc1a828b15923c44046004fb1c4322f8c211ff4c153914bc776a356a476f499127cfee3fc89b101ac64f93b352aa761bd349c3a8e0de33d792
+  languageName: node
+  linkType: hard
+
+"@tanstack/query-devtools@npm:5.91.1":
+  version: 5.91.1
+  resolution: "@tanstack/query-devtools@npm:5.91.1"
+  checksum: 10c0/856d85d249fd46a9f191a345f4446dcfb11a6b48d664f18f5bf480d0802fde5089ca7ae39e26e3445256a13f12f9b77b8639c33ad26c9d1e4b4c56a00fdb9b8c
   languageName: node
   linkType: hard
 
@@ -8815,6 +8845,34 @@ __metadata:
     "@angular/platform-browser": "npm:^20.3.0"
     "@angular/router": "npm:^20.3.9"
     "@faker-js/faker": "npm:^10.1.0"
+    msw: "npm:^2.12.1"
+    orval: "workspace:*"
+    rimraf: "npm:^6.1.0"
+    rxjs: "npm:~7.8.2"
+    tslib: "npm:^2.8.1"
+    typescript: "npm:~5.8.3"
+    vitest: "npm:^4.0.8"
+  dependenciesMeta:
+    msw:
+      built: true
+  languageName: unknown
+  linkType: soft
+
+"angular-query@workspace:samples/angular-query":
+  version: 0.0.0-use.local
+  resolution: "angular-query@workspace:samples/angular-query"
+  dependencies:
+    "@angular/build": "npm:^20.3.1"
+    "@angular/cli": "npm:^20.3.1"
+    "@angular/common": "catalog:angular"
+    "@angular/compiler": "npm:^20.3.15"
+    "@angular/compiler-cli": "npm:^20.3.2"
+    "@angular/core": "catalog:angular"
+    "@angular/forms": "npm:^20.3.0"
+    "@angular/platform-browser": "npm:^20.3.0"
+    "@angular/router": "npm:^20.3.9"
+    "@faker-js/faker": "npm:^10.1.0"
+    "@tanstack/angular-query-experimental": "npm:^5.63.3"
     msw: "npm:^2.12.1"
     orval: "workspace:*"
     rimraf: "npm:^6.1.0"
@@ -18179,6 +18237,7 @@ __metadata:
     "@faker-js/faker": "npm:^10.1.0"
     "@hono/zod-validator": "npm:^0.7.4"
     "@modelcontextprotocol/sdk": "npm:1.24.0"
+    "@tanstack/angular-query-experimental": "npm:^5.63.3"
     "@tanstack/react-query": "npm:~5.62.16"
     "@tanstack/svelte-query": "npm:^4.41.0"
     "@tanstack/vue-query": "npm:^5.90.6"

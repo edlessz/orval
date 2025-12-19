@@ -20,6 +20,8 @@ import {
 } from '@orval/fetch';
 
 import {
+  angularUnwrapSignals,
+  angularWrapTypeWithSignal,
   getHasSignal,
   makeRouteSafe,
   vueUnRefParams,
@@ -47,7 +49,11 @@ export const generateQueryRequestFunction = (
   verbOptions: GeneratorVerbOptions,
   options: GeneratorOptions,
   isVue: boolean,
+  isAngular: boolean,
 ) => {
+  if (isAngular) {
+    return generateAngularHttpRequestFunction(verbOptions, options);
+  }
   return options.context.output.httpClient === OutputHttpClient.AXIOS
     ? generateAxiosRequestFunction(verbOptions, options, isVue)
     : generateFetchRequestFunction(verbOptions, options);
@@ -230,15 +236,106 @@ export const generateAxiosRequestFunction = (
   return httpRequestFunctionImplementation;
 };
 
+export const generateAngularHttpRequestFunction = (
+  {
+    headers,
+    queryParams,
+    operationName,
+    response,
+    body,
+    props: _props,
+    verb,
+    formData,
+    formUrlEncoded,
+    override,
+    paramsSerializer,
+  }: GeneratorVerbOptions,
+  { route: _route, context }: GeneratorOptions,
+) => {
+  // For Angular Query, HTTP functions take unwrapped values, not Signals
+  // The inject* hooks handle Signal parameters and unwrap them before calling the HTTP function
+  let props = _props;
+  let route = _route;
+
+  if (context.output?.urlEncodeParameters) {
+    route = makeRouteSafe(route);
+  }
+
+  const isRequestOptions = override.requestOptions !== false;
+  const isFormData = !override.formData.disabled;
+  const isFormUrlEncoded = override.formUrlEncoded !== false;
+  const hasSignal = getHasSignal({
+    overrideQuerySignal: override.query.signal,
+    verb,
+  });
+
+  const isExactOptionalPropertyTypes =
+    !!context.output.tsconfig?.compilerOptions?.exactOptionalPropertyTypes;
+
+  const bodyForm = generateFormDataAndUrlEncodedFunction({
+    formData,
+    formUrlEncoded,
+    body,
+    isFormData,
+    isFormUrlEncoded,
+  });
+
+  const options = generateOptions({
+    route,
+    body,
+    headers,
+    queryParams,
+    response,
+    verb,
+    requestOptions: override?.requestOptions,
+    isFormData,
+    isFormUrlEncoded,
+    paramsSerializer,
+    paramsSerializerOptions: override?.paramsSerializerOptions,
+    isExactOptionalPropertyTypes,
+    hasSignal,
+    isVue: false,
+  });
+
+  const optionsArgs = generateRequestOptionsArguments({
+    isRequestOptions,
+    hasSignal,
+    isAngular: true,
+  });
+
+  const queryProps = toObjectString(props, 'implementation');
+
+  // For Angular HttpClient, don't specify generic type when responseType is 'text' or 'blob'
+  // because Angular's type overloads handle these specially
+  const shouldOmitGenericType = response.isBlob || response.contentTypes?.at(0) === 'text/plain';
+  const genericType = shouldOmitGenericType ? '' : `<${response.definition.success || 'unknown'}>`;
+
+  // Add HttpClient as first parameter
+  const httpRequestFunctionImplementation = `${override.query.shouldExportHttpClient ? 'export ' : ''}const ${operationName} = (
+    http: HttpClient,
+    ${queryProps} ${optionsArgs}): Promise<${
+    response.definition.success || 'unknown'
+  }> => {
+    ${bodyForm}
+    return lastValueFrom(http.${verb}${genericType}(${options}));
+  }
+`;
+
+  return httpRequestFunctionImplementation;
+};
+
 export const generateRequestOptionsArguments = ({
   isRequestOptions,
   hasSignal,
+  isAngular,
 }: {
   isRequestOptions: boolean;
   hasSignal: boolean;
+  isAngular?: boolean;
 }) => {
   if (isRequestOptions) {
-    return 'options?: AxiosRequestConfig\n';
+    // Angular HttpClient doesn't have a single options interface, so we use a generic object type
+    return isAngular ? 'options?: Record<string, any>\n' : 'options?: AxiosRequestConfig\n';
   }
 
   return hasSignal ? 'signal?: AbortSignal\n' : '';
@@ -247,11 +344,14 @@ export const generateRequestOptionsArguments = ({
 export const getQueryArgumentsRequestType = (
   httpClient: OutputHttpClient,
   mutator?: GeneratorMutator,
+  isAngular?: boolean,
 ) => {
   if (!mutator) {
-    return httpClient === OutputHttpClient.AXIOS
-      ? `axios?: AxiosRequestConfig`
-      : 'fetch?: RequestInit';
+    if (httpClient === OutputHttpClient.AXIOS) {
+      return `axios?: AxiosRequestConfig`;
+    }
+    // Angular HttpClient doesn't have a single options interface
+    return isAngular ? 'fetch?: Record<string, any>' : 'fetch?: RequestInit';
   }
 
   if (mutator.hasSecondArg && !mutator.isHook) {
@@ -421,13 +521,21 @@ export const getMutationRequestArgs = (
 
 export const getHttpFunctionQueryProps = (
   isVue: boolean,
+  isAngular: boolean,
   httpClient: OutputHttpClient,
   queryProperties: string,
+  props?: GetterProps,
 ) => {
   if (isVue && httpClient === OutputHttpClient.FETCH && queryProperties) {
     return queryProperties
       .split(',')
       .map((prop) => `unref(${prop})`)
+      .join(',');
+  }
+
+  if (isAngular && queryProperties && props) {
+    return props
+      .map((prop) => `${prop.name}${prop.required ? '()' : '?.()'}`)
       .join(',');
   }
 

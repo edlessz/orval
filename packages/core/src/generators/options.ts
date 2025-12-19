@@ -118,11 +118,11 @@ export function generateAxiosOptions({
 
     if (queryParams) {
       if (isVue) {
-        value += '\n        params: {...unref(params), ...options?.params},';
+        value += '\n        params: {...unref(params), ...options?.["params"]},';
       } else if (isAngular && paramsSerializer) {
-        value += `\n        params: ${paramsSerializer.name}({...params, ...options?.params}),`;
+        value += `\n        params: ${paramsSerializer.name}({...params, ...options?.["params"]}),`;
       } else {
-        value += '\n        params: {...params, ...options?.params},';
+        value += '\n        params: {...params, ...options?.["params"]},';
       }
     }
 
